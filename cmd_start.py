@@ -9,7 +9,7 @@ AUDIO_FOLDER = "/path/to/your/folder/"
 IMAGE_FOLDER = "/path/to/your/folder/"
 ITEMS_FOLDER = "/path/to/your/folder/"
 SOUND_FOLDER = "/path/to/your/folder/"
-
+SOUND_FOLDER_BOCHKA = "/path/to/your/folder/subfolder"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     print(f"Received /start command from {update.effective_chat.id}")
@@ -141,14 +141,30 @@ async def soundpad(update: Update, context: CallbackContext) -> None:
         await update.message.reply_audio(audio)
 
 
+async def bochka(update: Update, context: CallbackContext) -> None:
+
+    audio_files = [f for f in os.listdir(SOUND_FOLDER_BOCHKA) if f.endswith('.mp3')]
+    
+    if not audio_files:
+        await update.message.reply_text('No sound, sorry (((')
+        return
+    
+    random_file = random.choice(audio_files)
+    random_file_path = os.path.join(SOUND_FOLDER_BOCHKA, random_file)
+    
+
+    with open(random_file_path, 'rb') as audio:
+        await update.message.reply_audio(audio)
+        
+        
 def main() -> None:
-    application = Application.builder().token(TELEGRAM_TOKEN).build()
+    application = Application.builder().token(TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("hero", hero))
     application.add_handler(CommandHandler("build", build))
     application.add_handler(CommandHandler("soundpad", soundpad))
-
+    application.add_handler(CommandHandler("bochka", bochka))
 
     application.run_polling()
 
