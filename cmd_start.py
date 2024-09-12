@@ -158,7 +158,7 @@ async def bochka(update: Update, context: CallbackContext) -> None:
         
         
 def main() -> None:
-    application = Application.builder().token(TOKEN).build()
+    application = Application.builder().token(TELEGRAM_TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("hero", hero))
