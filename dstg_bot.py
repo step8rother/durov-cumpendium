@@ -1,18 +1,18 @@
 import discord
-from telegram import Bot
 import aiohttp
 import asyncio
 import json
+from telegram import Bot
 
 
-DISCORD_TOKEN = ''
-TELEGRAM_TOKEN = ''
-TELEGRAM_CHAT_ID = ''
+with open("/path/to/mapping.json", "r") as m:
+    mapping = json.load(m)
+with open("/path/to/config.json") as c:
+    config = json.load(c)
 
-
-with open('/path/to/your/folder/mapping.json', 'r') as f:
-    mapping = json.load(f)
-
+TELEGRAM_TOKEN = config["TELEGRAM_TOKEN"]
+DISCORD_TOKEN = config["DISCORD_TOKEN"]
+TELEGRAM_CHAT_ID = config["TELEGRAM_CHAT_ID"]
 
 bot = Bot(token=TELEGRAM_TOKEN)
 client = discord.Client(intents=discord.Intents.all())
@@ -36,7 +36,7 @@ async def on_voice_state_update(member, before, after):
         
         active_nicknames = [mapping.get(str(member.id), member.name) for member in members]
         
-        with open('/path/to/your/folder/active_users.txt', 'w') as f:
+        with open('/path/to/active_users.txt', 'w') as f:
             f.write('\n'.join(active_nicknames))
         
         if before.channel is None and after.channel is not None:

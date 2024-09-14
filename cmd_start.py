@@ -1,37 +1,36 @@
 import os
 import random
+import json
 from telegram import Update, InputMediaPhoto
 from telegram.ext import Application, CommandHandler, ContextTypes, CallbackContext
 
 
-TELEGRAM_TOKEN = ''
-AUDIO_FOLDER = "/path/to/your/folder/"
-IMAGE_FOLDER = "/path/to/your/folder/"
-ITEMS_FOLDER = "/path/to/your/folder/"
-SOUND_FOLDER = "/path/to/your/folder/"
-SOUND_FOLDER_BOCHKA = "/path/to/your/folder/subfolder"
+with open("/path/to/config.json") as c:
+    config = json.load(c)
+
+TELEGRAM_TOKEN = config["TELEGRAM_TOKEN"]
+
+AUDIO_FOLDER = config["AUDIO_FOLDER"]
+IMAGE_FOLDER = config["IMAGE_FOLDER"]
+ITEMS_FOLDER = config["ITEMS_FOLDER"]
+SOUND_FOLDER = config["SOUND_FOLDER"]
+SOUND_FOLDER_BOCHKA = config["SOUND_FOLDER_BOCHKA"]
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     print(f"Received /start command from {update.effective_chat.id}")
-    
+
     subfolders = [f.path for f in os.scandir(IMAGE_FOLDER) if f.is_dir()]
-    
     if subfolders:
-
         random_subfolder = random.choice(subfolders)
-        
-
         audio_files = [f for f in os.listdir(random_subfolder) if f.endswith('.mp3')]
         
         if audio_files:
-
             random_audio_file = random.choice(audio_files)
             audio_path = os.path.join(random_subfolder, random_audio_file)
             
-
             with open(audio_path, 'rb') as audio_file:
-              await context.bot.send_audio(chat_id=update.effective_chat.id, audio=audio_file)
-            
+              await update.message.reply_audio(audio_file)
         else:
             await update.message.reply_text("No audios, sorry ((")
     else:
@@ -42,32 +41,22 @@ async def hero(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     print(f"Received /hero command from {update.effective_chat.id}")
     
     subfolders = [f.path for f in os.scandir(IMAGE_FOLDER) if f.is_dir()]
-    
     if subfolders:
-
         random_subfolder = random.choice(subfolders)
-        
-
         image_files = [f for f in os.listdir(random_subfolder) if f.endswith(('.jpg', '.jpeg', '.png', '.gif'))]
         
         if image_files:
-
             random_image_file = random.choice(image_files)
             image_path = os.path.join(random_subfolder, random_image_file)
-            
-
             audio_files = [f for f in os.listdir(random_subfolder) if f.endswith('.mp3')]
             
             if audio_files:
-
                 random_audio_file = random.choice(audio_files)
                 audio_path = os.path.join(random_subfolder, random_audio_file)
                 
-
                 with open(image_path, 'rb') as image_file:
-                    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=image_file)
+                    await update.message.reply_photo(image_file)
                 
-
                 with open(audio_path, 'rb') as audio_file:
                     await context.bot.send_audio(chat_id=update.effective_chat.id, audio=audio_file)
             else:
@@ -81,35 +70,24 @@ async def hero(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def build(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     print(f"Received /build command from {update.effective_chat.id}")
 
-
     categories = [f for f in os.listdir(ITEMS_FOLDER) if os.path.isdir(os.path.join(ITEMS_FOLDER, f))]
-
 
     if len(categories) != 7:
         await update.message.reply_text("Err0r: Expected 7 categories, but found a different number.")
         return
 
-
     if "Boots" not in categories:
         await update.message.reply_text("Err0r: 'Boots' category is missing.")
         return
 
-
     selected_categories = ["Boots"]
-
-
     remaining_categories = [category for category in categories if category != "Boots"]
-
-
     selected_categories.extend(random.sample(remaining_categories, 5))
-
     media_group = []
-
 
     for category in selected_categories:
         category_path = os.path.join(ITEMS_FOLDER, category)
         images_in_category = [f for f in os.listdir(category_path) if f.endswith(('.jpg', '.jpeg', '.png', '.gif'))]
-
 
         if images_in_category:
             random_image = random.choice(images_in_category)
@@ -120,9 +98,8 @@ async def build(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(f"No images found in category {category}.")
             return
 
-
-    if media_group:
-        await context.bot.send_media_group(chat_id=update.effective_chat.id, media=media_group, caption="Random build for you. Good luck!")
+    if media_group: 
+        await update.message.reply_media_group(media_group, caption="Random build for you. Good luck!")
     else:
         await update.message.reply_text("No images, sorry (((")
         
@@ -152,7 +129,6 @@ async def bochka(update: Update, context: CallbackContext) -> None:
     random_file = random.choice(audio_files)
     random_file_path = os.path.join(SOUND_FOLDER_BOCHKA, random_file)
     
-
     with open(random_file_path, 'rb') as audio:
         await update.message.reply_audio(audio)
         
@@ -166,7 +142,9 @@ def main() -> None:
     application.add_handler(CommandHandler("soundpad", soundpad))
     application.add_handler(CommandHandler("bochka", bochka))
 
+
     application.run_polling()
 
 if __name__ == '__main__':
     main()
+    
