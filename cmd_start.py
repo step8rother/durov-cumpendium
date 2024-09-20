@@ -9,12 +9,15 @@ with open("/path/to/config.json") as c:
     config = json.load(c)
 
 TELEGRAM_TOKEN = config["TELEGRAM_TOKEN"]
+TELEGRAM_CHAT_ID = config["TELEGRAM_CHAT_ID"]
+ALLOWED_USERS = config["allowed_users"]
 
 AUDIO_FOLDER = config["AUDIO_FOLDER"]
 IMAGE_FOLDER = config["IMAGE_FOLDER"]
 ITEMS_FOLDER = config["ITEMS_FOLDER"]
 SOUND_FOLDER = config["SOUND_FOLDER"]
 SOUND_FOLDER_BOCHKA = config["SOUND_FOLDER_BOCHKA"]
+CARD_PATH = config["CARD_PATH"] #dev feature in progress
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -119,7 +122,6 @@ async def soundpad(update: Update, context: CallbackContext) -> None:
 
 
 async def bochka(update: Update, context: CallbackContext) -> None:
-
     audio_files = [f for f in os.listdir(SOUND_FOLDER_BOCHKA) if f.endswith('.mp3')]
     
     if not audio_files:
@@ -132,7 +134,19 @@ async def bochka(update: Update, context: CallbackContext) -> None:
     with open(random_file_path, 'rb') as audio:
         await update.message.reply_audio(audio)
         
+
+async def sendmsg(update: Update, context):
+    user_id = update.effective_user.username
+
+    if user_id not in ALLOWED_USERS:
+        await update.message.reply_text("Restricted, sorry (no sorry)")
+
+    else:
+        message = ' '.join(context.args)
+        await context.bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
+        return
         
+     
 def main() -> None:
     application = Application.builder().token(TELEGRAM_TOKEN).build()
 
@@ -141,10 +155,9 @@ def main() -> None:
     application.add_handler(CommandHandler("build", build))
     application.add_handler(CommandHandler("soundpad", soundpad))
     application.add_handler(CommandHandler("bochka", bochka))
-
+    application.add_handler(CommandHandler("sendmsg", sendmsg))
 
     application.run_polling()
 
 if __name__ == '__main__':
     main()
-    
