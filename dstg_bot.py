@@ -34,7 +34,7 @@ async def on_voice_state_update(member, before, after):
     if voice_channel is not None:
         members = await get_voice_channel_members(voice_channel)
         
-        active_nicknames = [mapping.get(str(member.id), member.name) for member in members]
+        active_nicknames = [member.display_name for member in members]
         
         with open('/path/to/active_users.txt', 'w') as f:
             f.write('\n'.join(active_nicknames))
@@ -43,11 +43,11 @@ async def on_voice_state_update(member, before, after):
             telegram_nickname = mapping.get(str(member.id), member.name)
             
             missing_nicknames = [nickname for user_id, nickname in mapping.items() if user_id not in [str(m.id) for m in members]]
-
+            # English level - MGIMO finished
             message = (
-                f'{telegram_nickname} bounce on channel \n'
-                f'Now on channel: {", ".join(active_nicknames)} \n'
-                f'Waiting for: {", ".join(missing_nicknames)}'
+                f'{telegram_nickname} баунс он чаннел \n'
+                f'Нау он чаннел: {", ".join(active_nicknames)} \n'
+                f'Ветинг фор: {", ".join(missing_nicknames)}'
             )
 
             await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
